@@ -1,0 +1,15 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.contanier {
+  max-width: 1000px;
+  margin: 0 auto;
+  height: 100vh;
+}
+
+.card {
+  padding: 64px 60px 60px;
+  border-radius: 5px;
+}
