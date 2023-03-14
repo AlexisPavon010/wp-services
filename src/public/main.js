@@ -1,6 +1,8 @@
 var qrCodeContainer = document.getElementById('canvas')
 const socket = io()
 
+console.log('connected')
+
 socket.on("getqr", (qrCodeData) => {
   // console.log(qrCodeData);
   // Eliminar el código QR anterior
