@@ -8,6 +8,9 @@ const path = require('path');
 // Crear una instancia del servidor de Express
 const app = express();
 
+// app.use("/", (req, res) => {
+//   res.json({ message: "Hello From Express App" });
+// });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
