@@ -48,7 +48,6 @@ io.on('connection', (socket) => {
 
 
   client.on('message_create', async (message) => {
-    console.log(message)
     if (message.type === 'buttons_response') {
       if (message.selectedButtonId === 'accept-button') {
         client.sendMessage(message.from, 'Bienvenido a la Deep Web!');

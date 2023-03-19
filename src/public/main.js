@@ -10,8 +10,8 @@ socket.on("getqr", (qrCodeData) => {
   // Crear un nuevo código QR
   var qrcode = new QRCode(qrCodeContainer, {
     text: qrCodeData,
-    width: 512,
-    height: 512,
+    width: 264,
+    height: 264,
     colorDark: "#000000",
     colorLight: "#ffffff",
     correctLevel: QRCode.CorrectLevel.L
