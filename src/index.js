@@ -41,7 +41,7 @@ const io = require('socket.io')(server, {
   },
   allowEIO3: true
 });
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 3000;
 const qrcode = require("qrcode");
 const path = require("path");
 
