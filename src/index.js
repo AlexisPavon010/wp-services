@@ -23,6 +23,7 @@ const fileUpload = require('express-fileupload');
 const cors = require('cors');
 const bodyParser = require("body-parser");
 const app = require("express")()
+const rimraf = require('rimraf');
 // enable files upload
 app.use(fileUpload({
     createParentPath: true
@@ -48,6 +49,21 @@ let client;
 let qr;
 let soket;
 
+const removeSession = () => {
+    rimraf('baileys_auth_info',
+        {
+            maxBusyTries: 10,
+            disableGlob: false
+        },
+        (err) => {
+            if (err) {
+                console.error(`Error: ${err}`);
+                return;
+            }
+            console.log('Carpeta eliminada');
+        });
+}
+
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState('baileys_auth_info')
     let { version, isLatest } = await fetchLatestBaileysVersion();
@@ -64,31 +80,8 @@ async function connectToWhatsApp() {
         // console.log(update);
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
-            let reason = new Boom(lastDisconnect.error).output.statusCode;
-            if (reason === DisconnectReason.badSession) {
-                console.log(`Bad Session File, Please Delete ${session} and Scan Again`);
-                client.logout();
-            } else if (reason === DisconnectReason.connectionClosed) {
-                console.log("Connection closed, reconnecting....");
-                connectToWhatsApp();
-            } else if (reason === DisconnectReason.connectionLost) {
-                console.log("Connection Lost from Server, reconnecting...");
-                connectToWhatsApp();
-            } else if (reason === DisconnectReason.connectionReplaced) {
-                console.log("Connection Replaced, Another New Session Opened, Please Close Current Session First");
-                client.logout();
-            } else if (reason === DisconnectReason.loggedOut) {
-                console.log(`Device Logged Out, Please Delete ${session} and Scan Again.`);
-                client.logout();
-            } else if (reason === DisconnectReason.restartRequired) {
-                console.log("Restart Required, Restarting...");
-                connectToWhatsApp();
-            } else if (reason === DisconnectReason.timedOut) {
-                console.log("Connection TimedOut, Reconnecting...");
-                connectToWhatsApp();
-            } else {
-                client.end(`Unknown DisconnectReason: ${reason}|${lastDisconnect.error}`);
-            }
+            removeSession()
+            connectToWhatsApp()
         } else if (connection === 'open') {
             console.log('opened connection');
             let getGroups = await client.groupFetchAllParticipating();
@@ -97,15 +90,17 @@ async function connectToWhatsApp() {
             return;
         } else {
             qr = update.qr
+            updateQR("qr");
         }
     });
     client.ev.on("creds.update", saveCreds);
     client.ev.on("messages.upsert", async ({ messages, type }) => {
-        //console.log(messages);
+        console.log(type)
         if (type === "notify") {
             if (!messages[0].key.fromMe) {
                 //tentukan jenis pesan berbentuk text                
-                const pesan = messages[0].message.conversation;
+                const conversation = messages[0].message.conversation;
+                console.log(conversation)
 
                 //nowa dari pengirim pesan sebagai id
                 const noWa = messages[0].key.remoteJid;
@@ -113,12 +108,12 @@ async function connectToWhatsApp() {
                 await client.readMessages([messages[0].key]);
 
                 //kecilkan semua pesan yang masuk lowercase 
-                const pesanMasuk = pesan.toLowerCase();
+                const conversationToLowerCase = conversation.toLowerCase();
 
-                if (!messages[0].key.fromMe && pesanMasuk === "ping") {
-                    await client.sendMessage(noWa, { text: "Pong" }, { quoted: messages[0] });
+                if (conversationToLowerCase === "ping") {
+                    await client.sendMessage(noWa, { text: "Pong" });
                 } else {
-                    await client.sendMessage(noWa, { text: "Saya adalah Bot!" }, { quoted: messages[0] });
+                    await client.sendMessage(noWa, { text: "Saya adalah Bot!" });
                 }
             }
         }
